@@ -15,7 +15,6 @@
     (subseq line 0 (1- (length line)))))
 
 (defun format-crlf (stream fmt &rest args)
-  (format t "~?~%" fmt args)
   (format stream "~?~C~C" fmt args #\Return #\Newline))
 
 (defun octets-to-hex-string (octets)

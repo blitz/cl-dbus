@@ -17,11 +17,15 @@
     rest))
 
 
-(defun dbus-connect (host port)
-  "Returns an connection to the given `host' and `port'"
+(defun dbus-connect (&optional (address :session))
+  "Returns a DBUS connection to the given ADDRESS. ADDRESS is either a
+symbol (:SESSION or :SYSTEM) or a string containing a DBUS
+address. Defaults to :SESSION."
   (let* ((success nil)
-         (stream (usocket:socket-stream (usocket:socket-connect 
-                                         host port :element-type '(unsigned-byte 8))))
+         (stream (etypecase address
+                   (symbol (ecase address
+                             (:session (connect-via-address-string (sb-posix:getenv "DBUS_SESSION_BUS_ADDRESS")))))
+                   (string address)))
          (con (make-instance 'dbus-connection
                              :stream stream)))
     (unwind-protect 
@@ -37,7 +41,6 @@
              ;; Check which authentication methods are accepted and try the
              ;; ones we support.
              (let ((methods (accepted-methods ascii-stream)))
-               (format t "Server supports authentication via:~{ ~A~}~%" methods)
                (or (when (find "DBUS_COOKIE_SHA1" methods :test #'string=) 
                      (try-cookie-sha1-auth ascii-stream))
                    (when (find "ANONYMOUS" methods :test #'string=) 
@@ -48,6 +51,8 @@
       ;; Cleanup
       (unless success
         (dbus-close con)))))
+
+;;; Method calls
 
 (defvar *endianness* :little-endian)
 

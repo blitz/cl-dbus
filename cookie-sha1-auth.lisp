@@ -46,7 +46,6 @@ epoch and the cookie itself (as string of hex digits)."
     (destructuring-bind (context secret-cookie-id-str hex-challenge-str)
         (cl-ppcre:split "\\s" (sb-ext:octets-to-string (parse-hex-string data)
                                                        :external-format :ascii))
-      (format t "Got: ~A ~A ~A~%" context secret-cookie-id-str hex-challenge-str)
       (let ((secret-cookie-id (parse-integer secret-cookie-id-str)))
         ;; Try to find the requested cookie.
         (let ((cookie-data-str (block data
