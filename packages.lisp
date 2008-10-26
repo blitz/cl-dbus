@@ -5,6 +5,7 @@
 
 (defpackage :blitz.desktop.dbus
   (:use :common-lisp :iterate :defclass-star)
+  (:import-from :cl-ppcre "SPLIT" "SCAN-TO-STRINGS")
   (:export))
 (in-package :blitz.desktop.dbus)
 

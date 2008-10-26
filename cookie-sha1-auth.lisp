@@ -70,7 +70,7 @@ epoch and the cookie itself (as string of hex digits)."
                                                                             hashed-str)))))
               ;; Format our answer
               (format-crlf stream "DATA ~A20~A"
-                           (to-hex-string my-challenge-str)
+                           (string-to-hex-string my-challenge-str)
                            (string-to-hex-string digest)))
             (force-output stream))))))
   ;; Now check if we get a positive reply.

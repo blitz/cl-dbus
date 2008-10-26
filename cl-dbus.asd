@@ -2,6 +2,7 @@
 
 (defsystem cl-dbus
   :components ((:file "packages")
+               (:file "transport" :depends-on ("packages"))
                (:file "utilities" :depends-on ("packages"))
                (:file "cookie-sha1-auth" :depends-on ("packages" "utilities"))
                (:file "anonymous-auth" :depends-on ("packages" "utilities"))
