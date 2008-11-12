@@ -5,7 +5,7 @@ This library aims to be an implementation of the D-BUS specification.
 * Introduction
 
 If you don't want to hack on this, you can stop reading at this point
-and delete the directory containting this file.
+and delete the directory containing this file.
 
 Okay, you are still here.
 
