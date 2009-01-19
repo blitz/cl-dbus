@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp -*-
 ;;; Copyright (c) 2008 Julian Stecklina
-;;; 
+;;;
 ;;; This file is part of CL-DBUS. Look into LICENSE for license terms.
 
 (in-package :blitz.desktop.dbus)
@@ -29,22 +29,22 @@ address. Defaults to :SESSION."
                     (string address))))
          (con (make-instance 'dbus-connection
                              :stream stream)))
-    (unwind-protect 
+    (unwind-protect
          (progn
            ;; Send greeting (the NUL byte)
            (write-byte 0 stream)
            (force-output stream)
            ;; Now the ASCII authentication protocol can start.
-           (let ((ascii-stream (flexi-streams:make-flexi-stream 
-                                stream 
+           (let ((ascii-stream (flexi-streams:make-flexi-stream
+                                stream
                                 :external-format :ascii
                                 :element-type 'character)))
              ;; Check which authentication methods are accepted and try the
              ;; ones we support.
              (let ((methods (accepted-methods ascii-stream)))
-               (or (when (find "DBUS_COOKIE_SHA1" methods :test #'string=) 
+               (or (when (find "DBUS_COOKIE_SHA1" methods :test #'string=)
                      (try-cookie-sha1-auth ascii-stream))
-                   (when (find "ANONYMOUS" methods :test #'string=) 
+                   (when (find "ANONYMOUS" methods :test #'string=)
                      (try-anonymous-auth ascii-stream))
                    (error "Could not authenticate to server.")))
              (format-crlf ascii-stream "BEGIN")
@@ -89,7 +89,7 @@ address. Defaults to :SESSION."
 (defun dbus-read-uint32 (stream)
   (dbus-read-alignment stream 4)
   (ecase *endianness*
-    (:little-endian 
+    (:little-endian
      (logior (dbus-read-byte stream)
              (ash (dbus-read-byte stream) 8)
              (ash (dbus-read-byte stream) 16)
@@ -252,7 +252,7 @@ address. Defaults to :SESSION."
       (dbus-write-byte array-stream +member+)
       (dbus-write-signature array-stream "s")
       (dbus-write-string array-stream member)
-      ;; Interface 
+      ;; Interface
       (when interface
         (format t "INTERFACE~%")
         (dbus-write-alignment array-stream 8)
@@ -272,26 +272,13 @@ address. Defaults to :SESSION."
         (dbus-write-byte array-stream +signature+)
         (dbus-write-signature array-stream "g")
         (dbus-write-signature array-stream signature)))
-    
+
     (format t "BC = ~A~%" *byte-counter*)
     (dbus-write-alignment stream 8)
     (write-sequence body stream)
     (force-output stream)))
 
-(defun try-to-send-hello ()
-  (let ((con (dbus-connect "unix:path=/tmp/dbus-test,guid=7ec02b0af9c2b6e23f10880449051a5a")))
-    (unwind-protect
-         (dbus-method-call con
-                           :path "/org/freedesktop/DBus"
-                           :destination "org.freedesktop.DBus"
-                           :interface "org.freedesktop.DBus"
-                           :member "Hello"
-                           :signature ""
-                           :arguments ())
-      (dbus-close con))))
-
-
-#+ ignore 
+#+ ignore
 (defun dbus-read-header (con)
   (let ((buf (make-array 12 :element-type '(unsigned-byte 8))))
     (assert (= 12 (read-sequence buf (stream-of con))))
@@ -305,11 +292,6 @@ address. Defaults to :SESSION."
            (serial (dbus-read-uint32 buf 8)))
       (assert (= protocol-version 1))
       (list *endianness* msg-type flags protocol-version body-length serial))))
-
-(defun dbus-message (con)
-  (let ((header (dbus-read-header con)))
-    ;; XXX
-    header))
 
 (defun dbus-close (con)
   (close (stream-of con)))
