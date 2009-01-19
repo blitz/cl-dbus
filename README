@@ -12,16 +12,13 @@ Okay, you are still here.
 * Development resources
 
 The official source code repository of this project is managed in
-git. To get a copy of the recent development tree, enter:
+git. To get a copy of the recent development tree, visit:
 
- git clone http://cthulhu.c3d2.de/~blitz/git/cl-dbus.git
-
-You can also find a gitweb at:
-
- http://cthulhu.c3d2.de/~blitz/gitweb/?p=cl-dbus.git
+ http://github.com/blitz/cl-dbus
 
 There is currently no fancy project page, bug tracker or
-whatever. Please coordinate your effort with der_julian (at) web.de
+whatever. Please coordinate your effort with js at alien8 dot de or
+use github's communication methods to reach me.
 
 * Information
 
