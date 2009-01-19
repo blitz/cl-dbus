@@ -102,7 +102,7 @@ address. Defaults to :SESSION."
 
 (defun dbus-read-string (stream)
   (let ((length (dbus-read-uint32 stream)))
-    (when (> length (* 10 1024 1024))
+    (when (> length (* 1024 1024))
       (cerror "This is okay. Continue." "Incredibly large string (~,2F MB) in DBUS request."
               (/ length 1024 1024)))
     (let* ((buf (make-array length :element-type '(unsigned-byte 8)))
@@ -178,17 +178,20 @@ address. Defaults to :SESSION."
 
 (defun dbus-write-signature (stream sig)
   (format t "Emitting signature: ~A~%" sig)
-  (let ((buf (sb-ext:string-to-octets sig)))
+  ;; XXX Merge with dbus-write-string?
+  (let ((buf (flex:string-to-octets sig)))
     (dbus-write-byte stream (length buf))
     (write-sequence buf stream)
-    (incf *byte-counter* (length buf))))
+    (incf *byte-counter* (length buf))
+    (dbus-write-byte stream 0)))
 
 (defun dbus-write-string (stream string)
   (format t "Emitting string: ~A~%" string)
-  (let ((buf (sb-ext:string-to-octets string)))
+  (let ((buf (flex:string-to-octets string)))
     (dbus-write-uint32 stream (length buf))
     (write-sequence buf stream)
-    (incf *byte-counter* (length buf))))
+    (incf *byte-counter* (length buf))
+    (dbus-write-byte stream 0)))
 
 (defmacro dbus-with-array-write ((stream-var output-stream alignment) &body body)
   (let ((out-var (gensym "OUT-VAR"))
