@@ -2,6 +2,7 @@
 
 (defsystem cl-dbus
   :components ((:file "packages")
+               (:file "types")
                (:file "transport" :depends-on ("packages"))
                (:file "unix-transport" :depends-on ("packages" "transport"))
                (:file "utilities" :depends-on ("packages"))
