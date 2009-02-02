@@ -11,6 +11,6 @@
                                                         "transport"))
                (:file "test" :depends-on ("packages" "network")))
   :depends-on (iterate flexi-streams defclass-star usocket cl-ppcre
-                       ironclad))
+                       ironclad babel))
 
 ;;; EOF

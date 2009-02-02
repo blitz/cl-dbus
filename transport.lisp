@@ -33,7 +33,7 @@ hex-digits. Returns the unescaped string."
                            "Got non-digits (~A ~A) after escape char..." digit1 digit2)
                    (vector-push-extend (logior (ash digit1 4) digit2) output)))
             (t (vector-push-extend (char-code char) output)))
-          (finally (return (sb-ext:octets-to-string output :external-format :utf8))))))
+          (finally (return (babel:octets-to-string output :encoding :utf-8))))))
 
 (defun parse-key-value-string (kv-string)
   "Parse a DBUS address key-value pair (foo=bar) taking care of the

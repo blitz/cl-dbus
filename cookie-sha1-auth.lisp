@@ -30,7 +30,7 @@ epoch and the cookie itself (as string of hex digits)."
 
 (defun try-cookie-sha1-auth (stream)
   ;; Send the username we want to authenticate as.
-  (let ((user (sb-ext:posix-getenv "USER")))
+  (let ((user (file-author (user-homedir-pathname))))
     (assert (stringp user) (user) "Couldn't find out username?! USER is not set.")
     (format-crlf stream "AUTH DBUS_COOKIE_SHA1 ~A"
                  (string-to-hex-string user)))
@@ -44,8 +44,8 @@ epoch and the cookie itself (as string of hex digits)."
     (when (string/= response "DATA")
       (error "Got unexpected result: ~A ~A" response data))
     (destructuring-bind (context secret-cookie-id-str hex-challenge-str)
-        (cl-ppcre:split "\\s" (sb-ext:octets-to-string (parse-hex-string data)
-                                                       :external-format :ascii))
+        (cl-ppcre:split "\\s" (babel:octets-to-string (parse-hex-string data)
+                                                       :encoding :ascii))
       (let ((secret-cookie-id (parse-integer secret-cookie-id-str)))
         ;; Try to find the requested cookie.
         (let ((cookie-data-str (block data
@@ -64,8 +64,8 @@ epoch and the cookie itself (as string of hex digits)."
                                        hex-challenge-str
                                        my-challenge-str
                                        cookie-data-str))
-                   (digest (octets-to-hex-string (ironclad:digest-sequence 'ironclad:sha1
-                                                                           (sb-ext:string-to-octets
+                   (digest (octets-to-hex-string (ironclad:digest-sequence :sha1
+                                                                           (babel:string-to-octets
                                                                             hashed-str)))))
               ;; Format our answer
               (format-crlf stream "DATA ~A20~A"

@@ -25,7 +25,7 @@ address. Defaults to :SESSION."
          (stream (connect-via-address-string
                   (etypecase address
                     (symbol (ecase address
-                              (:session (sb-posix:getenv "DBUS_SESSION_BUS_ADDRESS"))))
+                              (:session (getenv "DBUS_SESSION_BUS_ADDRESS"))))
                     (string address))))
          (con (make-instance 'dbus-connection
                              :stream stream)))
@@ -110,7 +110,7 @@ address. Defaults to :SESSION."
       (assert (= bytes length))
       (incf *byte-counter* bytes)
       (assert (zerop (dbus-read-byte stream)))
-      (sb-ext:octets-to-string buf :external-format :utf8))))
+      (babel:octets-to-string buf :encoding :utf-8))))
 
 (defun dbus-read-signature (stream)
   (let* ((length (dbus-read-byte stream))
@@ -118,7 +118,7 @@ address. Defaults to :SESSION."
          (bytes (read-sequence buf stream)))
     (assert (= length bytes))
     (assert (zerop (dbus-read-byte stream)))
-    (sb-ext:octets-to-string buf :external-format :utf8)))
+    (babel:octets-to-string buf :encoding :utf-8)))
 
 ;;; Message type
 (defconstant +method-call+ 1)
