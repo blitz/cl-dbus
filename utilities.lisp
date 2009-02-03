@@ -47,6 +47,7 @@
         (finally (return output)) ))
 
 
+;;; TODO Use compatibility layer.
 ;; From UFFI via CFFI 
 (defun getenv (var)
   #+allegro (sys::getenv (string var))
