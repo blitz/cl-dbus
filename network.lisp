@@ -35,10 +35,7 @@ address. Defaults to :SESSION."
            (write-byte 0 stream)
            (force-output stream)
            ;; Now the ASCII authentication protocol can start.
-           (let ((ascii-stream (flexi-streams:make-flexi-stream
-                                stream
-                                :external-format :ascii
-                                :element-type 'character)))
+           (let ((ascii-stream stream))
              ;; Check which authentication methods are accepted and try the
              ;; ones we support.
              (let ((methods (accepted-methods ascii-stream)))
