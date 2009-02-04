@@ -12,6 +12,6 @@
                                                         "transport"))
                (:file "test" :depends-on ("packages" "network")))
   :depends-on (iterate flexi-streams defclass-star iolib babel cl-ppcre
-                       ironclad))
+                       ironclad osicat))
 
 ;;; EOF

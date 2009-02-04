@@ -46,22 +46,6 @@
                                 (dc (1+ (* out-pos 2)))))))
         (finally (return output)) ))
 
-
-;;; TODO Use compatibility layer.
-;; From UFFI via CFFI 
-(defun getenv (var)
-  #+allegro (sys::getenv (string var))
-  #+clisp (sys::getenv (string var))
-  #+(or cmu scl) (cdr (assoc (string var) ext:*environment-list* :test #'equalp
-                             :key #'string))
-  #+gcl (si:getenv (string var))
-  #+lispworks (lw:environment-variable (string var))
-  #+lucid (lcl:environment-variable (string var))
-  #+(or mcl ccl) (ccl::getenv var)
-  #+sbcl (sb-ext:posix-getenv var)
-  #-(or allegro clisp cmu scl gcl lispworks lucid mcl ccl sbcl)
-  (error "error getenv not implemented"))
-
 ;;; EOF
 
 

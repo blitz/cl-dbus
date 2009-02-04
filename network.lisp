@@ -25,7 +25,7 @@ address. Defaults to :SESSION."
          (stream (connect-via-address-string
                   (etypecase address
                     (symbol (ecase address
-                              (:session (getenv "DBUS_SESSION_BUS_ADDRESS"))))
+                              (:session (osicat-posix:getenv "DBUS_SESSION_BUS_ADDRESS"))))
                     (string address))))
          (con (make-instance 'dbus-connection
                              :stream stream)))
