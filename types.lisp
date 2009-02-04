@@ -45,21 +45,42 @@
 (defgeneric marshall (type object vector start)
   (:documentation "Marshalls OBJECT (interpreted as TYPE) into
   VECTOR (starting at START). Returns VECTOR and an index pointing
-  after the written data."))
+  after the written data. VECTOR is destructively modified!"))
 
-(defun dbus-write-byte (vector start byte &optional (repeat 1))
+(defun dbus-write-byte (vector byte start &optional (repeat 1))
+  "Writes BYTE REPEAT-times into VECTOR starting at START. Returns the
+new position in VECTOR."
   (iter (repeat repeat)
         (for i upfrom 0)
-        (setf (aref vector (+ start i)) byte)))
+        (setf (aref vector (+ start i)) byte))
+  (+ start repeat))
+
+(defun dbus-write-sequence (destination source start)
+  "Writes SOURCE into DESTINATION (both vectors) starting at
+  START. Returns the new position in DESTINATION."
+  (when (> (+ (length source) start)
+           (length destination))
+    (error "Vector too small."))
+  (setf (subseq destination start) source)
+  (+ start (length source)))
 
 (defmethod marshall :around ((type dbus-type) object vector start)
+  ;; Alignment is handled in this around method. 
   (let* ((alignment (alignment-of type))
          (mod (nth-value 1 (truncate start alignment))))
-    (dbus-write-byte vector start 0 (- alignment mod))
-    (call-next-method type object vector (+ start (- alignment mod)))))
+    (format t "~A ~A~%" alignment mod)
+    (values 
+     (call-next-method type object vector 
+                       (dbus-write-byte vector 0 start 
+                                        (mod (- alignment mod) alignment)))
+     vector)))
 
 (defmethod marshall ((type dbus-boolean) object vector start)
-  ;; Endianness?
-  ;; XXXX
-  )
+  (dbus-write-sequence vector
+                       (if object
+                           #+ little-endian #(1 0 0 0)
+                           #+ big-endian #(0 0 0 1)
+                           #(0 0 0 0))
+                       start))
+
 ;;; EOF

@@ -59,164 +59,138 @@ address. Defaults to :SESSION."
 
 ;;; Method calls
 
-(defvar *endianness* :little-endian)
-(defvar *byte-counter*)
+;; (defvar *endianness* :little-endian)
+;; (defvar *byte-counter*)
 
-(defun dbus-read-alignment (stream alignment)
-  "Skip bytes to achieve an alignment of ALIGNMENT bytes."
-  (let ((mod (nth-value 1 (truncate *byte-counter* alignment))))
-    (unless (zerop mod)
-      (iter (repeat (- alignment mod))
-            (dbus-read-byte stream)))))
+;; (defun dbus-read-alignment (stream alignment)
+;;   "Skip bytes to achieve an alignment of ALIGNMENT bytes."
+;;   (let ((mod (nth-value 1 (truncate *byte-counter* alignment))))
+;;     (unless (zerop mod)
+;;       (iter (repeat (- alignment mod))
+;;             (dbus-read-byte stream)))))
 
-(defun dbus-read-byte (stream)
-  (incf *byte-counter* 1)
-  (read-byte stream))
+;; (defun dbus-read-byte (stream)
+;;   (incf *byte-counter* 1)
+;;   (read-byte stream))
 
-(defun dbus-read-uint16 (stream)
-  (dbus-read-alignment stream 2)
-  (ecase *endianness*
-    (:little-endian
-     (logior (dbus-read-byte stream)
-             (ash (dbus-read-byte stream) 8)))
-    (:big-endian
-     (logior (ash (dbus-read-byte stream) 8)
-             (dbus-read-byte stream)))))
+;; (defun dbus-read-uint16 (stream)
+;;   (dbus-read-alignment stream 2)
+;;   (ecase *endianness*
+;;     (:little-endian
+;;      (logior (dbus-read-byte stream)
+;;              (ash (dbus-read-byte stream) 8)))
+;;     (:big-endian
+;;      (logior (ash (dbus-read-byte stream) 8)
+;;              (dbus-read-byte stream)))))
 
-(defun dbus-read-uint32 (stream)
-  (dbus-read-alignment stream 4)
-  (ecase *endianness*
-    (:little-endian
-     (logior (dbus-read-byte stream)
-             (ash (dbus-read-byte stream) 8)
-             (ash (dbus-read-byte stream) 16)
-             (ash (dbus-read-byte stream) 24)))
-    (:big-endian
-          (logior (ash (dbus-read-byte stream) 24)
-                  (ash (dbus-read-byte stream) 16)
-                  (ash (dbus-read-byte stream) 8)
-                  (dbus-read-byte stream)))))
+;; (defun dbus-read-uint32 (stream)
+;;   (dbus-read-alignment stream 4)
+;;   (ecase *endianness*
+;;     (:little-endian
+;;      (logior (dbus-read-byte stream)
+;;              (ash (dbus-read-byte stream) 8)
+;;              (ash (dbus-read-byte stream) 16)
+;;              (ash (dbus-read-byte stream) 24)))
+;;     (:big-endian
+;;           (logior (ash (dbus-read-byte stream) 24)
+;;                   (ash (dbus-read-byte stream) 16)
+;;                   (ash (dbus-read-byte stream) 8)
+;;                   (dbus-read-byte stream)))))
 
-(defun dbus-read-string (stream)
-  (let ((length (dbus-read-uint32 stream)))
-    (when (> length (* 1024 1024))
-      (cerror "This is okay. Continue." "Incredibly large string (~,2F MB) in DBUS request."
-              (/ length 1024 1024)))
-    (let* ((buf (make-array length :element-type '(unsigned-byte 8)))
-           (bytes (read-sequence buf stream)))
-      (assert (= bytes length))
-      (incf *byte-counter* bytes)
-      (assert (zerop (dbus-read-byte stream)))
-      (babel:octets-to-string buf :encoding :utf-8))))
+;; (defun dbus-read-string (stream)
+;;   (let ((length (dbus-read-uint32 stream)))
+;;     (when (> length (* 1024 1024))
+;;       (cerror "This is okay. Continue." "Incredibly large string (~,2F MB) in DBUS request."
+;;               (/ length 1024 1024)))
+;;     (let* ((buf (make-array length :element-type '(unsigned-byte 8)))
+;;            (bytes (read-sequence buf stream)))
+;;       (assert (= bytes length))
+;;       (incf *byte-counter* bytes)
+;;       (assert (zerop (dbus-read-byte stream)))
+;;       (babel:octets-to-string buf :encoding :utf-8))))
 
-(defun dbus-read-signature (stream)
-  (let* ((length (dbus-read-byte stream))
-         (buf (make-array length :element-type '(unsigned-byte 8)))
-         (bytes (read-sequence buf stream)))
-    (assert (= length bytes))
-    (assert (zerop (dbus-read-byte stream)))
-    (babel:octets-to-string buf :encoding :utf-8)))
+;; (defun dbus-read-signature (stream)
+;;   (let* ((length (dbus-read-byte stream))
+;;          (buf (make-array length :element-type '(unsigned-byte 8)))
+;;          (bytes (read-sequence buf stream)))
+;;     (assert (= length bytes))
+;;     (assert (zerop (dbus-read-byte stream)))
+;;     (babel:octets-to-string buf :encoding :utf-8)))
 
-;;; Message type
-(defconstant +method-call+ 1)
-(defconstant +method-return+ 2)
-(defconstant +error+ 3)
-(defconstant +signal+ 4)
+;; (defun dbus-write-byte (stream byte)
+;;   (declare (type (unsigned-byte 8) byte))
+;;   (incf *byte-counter*)
+;;   (write-byte byte stream))
 
-;;; Header fields
-(defconstant +path+ 1)
-(defconstant +interface+ 2)
-(defconstant +member+ 3)
-(defconstant +error-name+ 4)
-(defconstant +reply-serial+ 5)
-(defconstant +destination+ 6)
-(defconstant +sender+ 7)
-(defconstant +signature+ 8)
-
-;;; Header flags
-(defconstant +no-reply-expected+ #x1)
-(defconstant +no-auto-start+ #x2)
-
-(defconstant +dbus-major-version+ 1)
-
-(defun dbus-write-byte (stream byte)
-  (declare (type (unsigned-byte 8) byte))
-  (incf *byte-counter*)
-  (write-byte byte stream))
-
-(defun dbus-write-alignment (stream alignment)
-  "Insert padding to achieve an alignment of ALIGNMENT bytes."
-  (let ((mod (nth-value 1 (truncate *byte-counter* alignment))))
-    (unless (zerop mod)
-      (format t "Emitting ~A byte(s) alignment.~%" (- alignment mod))
-      (iter (repeat (- alignment mod))
-            (dbus-write-byte stream 0)))))
+;; (defun dbus-write-alignment (stream alignment)
+;;   "Insert padding to achieve an alignment of ALIGNMENT bytes."
+;;   (let ((mod (nth-value 1 (truncate *byte-counter* alignment))))
+;;     (unless (zerop mod)
+;;       (format t "Emitting ~A byte(s) alignment.~%" (- alignment mod))
+;;       (iter (repeat (- alignment mod))
+;;             (dbus-write-byte stream 0)))))
 
 
-(defun dbus-write-uint32 (stream uint32)
-  (declare (type (unsigned-byte 32) uint32))
-  (format t "Emitting UINT32: #x~X~%"  uint32)
-  (dbus-write-alignment stream 4)
-  (let ((buf (make-array 4 :element-type '(unsigned-byte 8))))
-    (declare (dynamic-extent buf))
-    (ecase *endianness*
-      (:little-endian
-       (setf (aref buf 0) (logand uint32 #xFF)
-             (aref buf 1) (logand (ash uint32 -8) #xFF)
-             (aref buf 2) (logand (ash uint32 -16) #xFF)
-             (aref buf 3) (logand (ash uint32 -24) #xFF)))
-      (:big-endian
-       (setf (aref buf 0) (logand (ash uint32 -24) #xFF)
-             (aref buf 1) (logand (ash uint32 -16) #xFF)
-             (aref buf 2) (logand (ash uint32 -8) #xFF)
-             (aref buf 3) (logand uint32 #xFF))))
-    (write-sequence buf stream)
-    (incf *byte-counter* 4)))
+;; (defun dbus-write-uint32 (stream uint32)
+;;   (declare (type (unsigned-byte 32) uint32))
+;;   (format t "Emitting UINT32: #x~X~%"  uint32)
+;;   (dbus-write-alignment stream 4)
+;;   (let ((buf (make-array 4 :element-type '(unsigned-byte 8))))
+;;     (declare (dynamic-extent buf))
+;;     (ecase *endianness*
+;;       (:little-endian
+;;        (setf (aref buf 0) (logand uint32 #xFF)
+;;              (aref buf 1) (logand (ash uint32 -8) #xFF)
+;;              (aref buf 2) (logand (ash uint32 -16) #xFF)
+;;              (aref buf 3) (logand (ash uint32 -24) #xFF)))
+;;       (:big-endian
+;;        (setf (aref buf 0) (logand (ash uint32 -24) #xFF)
+;;              (aref buf 1) (logand (ash uint32 -16) #xFF)
+;;              (aref buf 2) (logand (ash uint32 -8) #xFF)
+;;              (aref buf 3) (logand uint32 #xFF))))
+;;     (write-sequence buf stream)
+;;     (incf *byte-counter* 4)))
 
-(defun dbus-write-signature (stream sig)
-  (format t "Emitting signature: ~A~%" sig)
-  ;; XXX Merge with dbus-write-string?
-  (let ((buf (flex:string-to-octets sig)))
-    (dbus-write-byte stream (length buf))
-    (write-sequence buf stream)
-    (incf *byte-counter* (length buf))
-    (dbus-write-byte stream 0)))
+;; (defun dbus-write-signature (stream sig)
+;;   (format t "Emitting signature: ~A~%" sig)
+;;   ;; XXX Merge with dbus-write-string?
+;;   (let ((buf (flex:string-to-octets sig)))
+;;     (dbus-write-byte stream (length buf))
+;;     (write-sequence buf stream)
+;;     (incf *byte-counter* (length buf))
+;;     (dbus-write-byte stream 0)))
 
-(defun dbus-write-string (stream string)
-  (format t "Emitting string: ~A~%" string)
-  (let ((buf (flex:string-to-octets string)))
-    (dbus-write-uint32 stream (length buf))
-    (write-sequence buf stream)
-    (incf *byte-counter* (length buf))
-    (dbus-write-byte stream 0)))
+;; (defun dbus-write-string (stream string)
+;;   (format t "Emitting string: ~A~%" string)
+;;   (let ((buf (flex:string-to-octets string)))
+;;     (dbus-write-uint32 stream (length buf))
+;;     (write-sequence buf stream)
+;;     (incf *byte-counter* (length buf))
+;;     (dbus-write-byte stream 0)))
 
-(defmacro dbus-with-array-write ((stream-var output-stream alignment) &body body)
-  (let ((out-var (gensym "OUT-VAR"))
-        (ali-var (gensym "ALI-VAR")))
-    `(let ((,out-var ,output-stream)
-           (,ali-var ,alignment)
-           (buf (flexi-streams:with-output-to-sequence (,stream-var)
-                  (let ((*byte-counter* 0))
-                  ,@body))))
-       (format t "BC before array = ~A~%" *byte-counter*)
-       (dbus-write-uint32 ,out-var (length buf))
-       (dbus-write-alignment stream ,ali-var)
-       (format t "Writing array body with ~A bytes.~%" (length buf))
-       (write-sequence buf ,out-var)
-       (incf *byte-counter* (length buf))
-       (format t "BC after array = ~A~%" *byte-counter*)
-       )))
+;; (defmacro dbus-with-array-write ((stream-var output-stream alignment) &body body)
+;;   (let ((out-var (gensym "OUT-VAR"))
+;;         (ali-var (gensym "ALI-VAR")))
+;;     `(let ((,out-var ,output-stream)
+;;            (,ali-var ,alignment)
+;;            (buf (flexi-streams:with-output-to-sequence (,stream-var)
+;;                   (let ((*byte-counter* 0))
+;;                   ,@body))))
+;;        (format t "BC before array = ~A~%" *byte-counter*)
+;;        (dbus-write-uint32 ,out-var (length buf))
+;;        (dbus-write-alignment stream ,ali-var)
+;;        (format t "Writing array body with ~A bytes.~%" (length buf))
+;;        (write-sequence buf ,out-var)
+;;        (incf *byte-counter* (length buf))
+;;        (format t "BC after array = ~A~%" *byte-counter*)
+;;        )))
 
-(defun dbus-marshal-to-buffer (signature arguments)
-  (flexi-streams:with-output-to-sequence (out)
-    (with-input-from-string (sig signature)
-      )
-    )
-  )
-
+;; (defun dbus-marshal-to-buffer (signature arguments)
+;;   (flexi-streams:with-output-to-sequence (out)
+;;     (with-input-from-string (sig signature)
+;;       )))
 
 ; method call sender=:1.4 -> dest=org.freedesktop.DBus path=/org/freedesktop/DBus; interface=org.freedesktop.DBus; member=Hello
-
 
 (defun dbus-method-call (con &key path interface member signature arguments
                          destination
@@ -224,6 +198,7 @@ address. Defaults to :SESSION."
                          (reply-expected t)
                          (auto-start t))
   (assert (and member path))
+  #+ ignore
   (let ((stream (stream-of con))
         (body (dbus-marshal-to-buffer signature arguments))
         (*byte-counter* 0))

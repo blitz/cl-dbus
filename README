@@ -20,6 +20,20 @@ There is currently no fancy project page, bug tracker or
 whatever. Please coordinate your effort with js at alien8 dot de or
 use github's communication methods to reach me.
 
+* Some notes
+
+** Implementation-specific code
+
+An effort has been made to include no implementation-specific code,
+but to rely on various wrapper libraries. This increases the amount of
+dependencies somewhat, but frees CL-DBUS from a lot of clutter.
+
+** Endianness
+
+Due to simplicity I plan only to support host endianness for outgoing
+messages, i.e. every message we compose ourselves. Incoming messages
+should be parsable regardless of their endianness.
+
 * Information
 
 The D-BUS spec: http://dbus.freedesktop.org/doc/dbus-specification.html
