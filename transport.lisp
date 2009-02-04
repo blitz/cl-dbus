@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp -*-
 ;;; Copyright (c) 2008 Julian Stecklina
-;;; 
+;;;
 ;;; This file is part of CL-DBUS. Look into LICENSE for license terms.
 
 (in-package :blitz.desktop.dbus)
@@ -19,7 +19,7 @@
 chars escaped by URI-style %XX sequences, with XX being
 hex-digits. Returns the unescaped string."
   (with-input-from-string (in string)
-    (iter (with output = (make-array 0 
+    (iter (with output = (make-array 0
                                      :element-type '(unsigned-byte 8)
                                      :fill-pointer t
                                      :adjustable t))
@@ -76,7 +76,7 @@ addresses. Returns a list of SERVER-ADDRESS structures."
   "Register a transport for NAME. ADDRESS is the name of a
   SERVER-ADDRESS structure. BODY should be code that takes the
   SERVER-ADDRESS and returns a stream or NIL."
-  `(register-transport ,(etypecase 
+  `(register-transport ,(etypecase
                          name
                          (symbol (string-downcase (string name)))
                          (string name))
@@ -88,11 +88,12 @@ addresses. Returns a list of SERVER-ADDRESS structures."
 (defun connect-via-address-string (string)
   "Takes a string containing a DBUS server address (or multiple) and
   returns a stream to the bus."
-  (iter (for address in (parse-server-address-list string))
-        (for transport-connector = (find (server-address-type address) *transports* 
-                                         :key #'car :test #'string=))
-        (if transport-connector
-            (thereis (funcall (cdr transport-connector) address))
-            (warn "Unknown connection type: ~A" (server-address-type address)))))
+  (or (iter (for address in (parse-server-address-list string))
+            (for transport-connector = (find (server-address-type address) *transports*
+                                             :key #'car :test #'string=))
+            (if transport-connector
+                (thereis (funcall (cdr transport-connector) address))
+                (warn "Unknown connection type: ~A" (server-address-type address))))
+      (error "Unable to connect to DBUS.")))
 
 ;;; EOF
