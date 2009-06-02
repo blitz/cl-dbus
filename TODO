@@ -2,7 +2,4 @@
 
 * A random list of things to do
 
-** unix-transport.lisp
-
-Port to usocket.
-
+Rewrite marshalling code.
