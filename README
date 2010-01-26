@@ -20,6 +20,28 @@ There is currently no fancy project page, bug tracker or
 whatever. Please coordinate your effort with js at alien8 dot de or
 use github's communication methods to reach me.
 
+* Setting up a D-Bus server to play with
+
+Verbose mode is disabled in production builds of dbus, so you need to
+compile your own dbus-daemon. Grab the source and build it with
+verbose mode enabled via something like:
+
+ git clone git://anongit.freedesktop.org/git/dbus/dbus
+ cd dbus ; sh autogen.sh
+ ./configure --enable-verbose-mode --enable-asserts --prefix=$HOME/local
+ make && make install
+
+Now you can start it via:
+
+ DBUS_VERBOSE=1 ~/local/bin/dbus-daemon --session --print-address
+
+It prints a lot of debug chatter. Near the end is the session address,
+which looks something like:
+
+ unix:abstract=/tmp/dbus-9ucTJli40r,guid=bc23bec2cc2ae2bd45f1477b4b5f6f3d
+
+Pass this string to DBUS-CONNECT.
+
 * Some notes
 
 ** Implementation-specific code
