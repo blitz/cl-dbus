@@ -34,7 +34,7 @@ epoch and the cookie itself (as string of hex digits)."
     (assert (stringp user) (user) "Couldn't find out username?! USER is not set.")
     (format-crlf stream "AUTH DBUS_COOKIE_SHA1 ~A"
                  (string-to-hex-string user)))
-  (force-output stream)
+  (finish-output stream)
   ;; The server sends the name of its "cookie context", a
   ;; space character; the integer ID of the secret cookie the client
   ;; must demonstrate knowledge of; a space character; then a
@@ -71,7 +71,7 @@ epoch and the cookie itself (as string of hex digits)."
               (format-crlf stream "DATA ~A20~A"
                            (string-to-hex-string my-challenge-str)
                            (string-to-hex-string digest)))
-            (force-output stream))))))
+            (finish-output stream))))))
   ;; Now check if we get a positive reply.
   (destructuring-bind (response . rest)
       (read-line-and-split stream)

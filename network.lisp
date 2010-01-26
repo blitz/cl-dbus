@@ -10,7 +10,7 @@
 
 (defun accepted-methods (stream)
   (format-crlf stream "AUTH")
-  (force-output stream)
+  (finish-output stream)
   (destructuring-bind (response . rest)
       (read-line-and-split stream)
     (assert (string= "REJECTED" response))
@@ -33,7 +33,7 @@ address. Defaults to :SESSION."
          (progn
            ;; Send greeting (the NUL byte)
            (write-byte 0 stream)
-           (force-output stream)
+           (finish-output stream)
            ;; Now the ASCII authentication protocol can start.
            (let ((ascii-stream stream))
              ;; Check which authentication methods are accepted and try the
