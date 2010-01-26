@@ -5,6 +5,7 @@
                (:file "types" :depends-on ("packages"))
                (:file "transport" :depends-on ("packages"))
                (:file "unix-transport" :depends-on ("packages" "transport"))
+               (:file "tcp-transport" :depends-on ("packages" "transport"))
                (:file "utilities" :depends-on ("packages"))
                (:file "cookie-sha1-auth" :depends-on ("packages" "utilities"))
                (:file "anonymous-auth" :depends-on ("packages" "utilities"))
