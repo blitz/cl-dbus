@@ -9,6 +9,8 @@
   (stream))
 
 (defun accepted-methods (stream)
+  "Return a list of names of accepted authentication methods (as
+strings)."
   (format-crlf stream "AUTH")
   (finish-output stream)
   (destructuring-bind (response . rest)
@@ -16,6 +18,9 @@
     (assert (string= "REJECTED" response))
     rest))
 
+
+(defun dbus-close (con)
+  (close (stream-of con)))
 
 (defun dbus-connect (&optional (address :session))
   "Returns a DBUS connection to the given ADDRESS. ADDRESS is either a
@@ -56,6 +61,8 @@ address. Defaults to :SESSION."
       ;; Cleanup
       (unless success
         (dbus-close con)))))
+
+
 
 ;;; Method calls
 
@@ -264,9 +271,5 @@ address. Defaults to :SESSION."
            (serial (dbus-read-uint32 buf 8)))
       (assert (= protocol-version 1))
       (list *endianness* msg-type flags protocol-version body-length serial))))
-
-(defun dbus-close (con)
-  (close (stream-of con)))
-
 
 ;;; EOF
