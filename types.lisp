@@ -5,21 +5,23 @@
 
 (in-package :blitz.desktop.dbus)
 
-(defclass* dbus-type ()
-  (name char alignment))
+(defvar *name-to-type* (make-hash-table))
 
-(defclass* dbus-compound-type (dbus-type)
-  (element-type))
+(defstruct dbus-type
+  name char alignment)
+
+(defmethod print-object ((o dbus-type) s)
+  (if *print-readably*
+      (call-next-method)
+      (print-unreadable-object (o s :type t :identity nil)
+        (format s "~A(~A)" (dbus-type-name o) (dbus-type-alignment o)))))
 
 (eval-when (:load-toplevel :compile-toplevel :execute)
-  (defmacro define-dbus-type (name type-char alignment &optional (superclass 'dbus-type) slots)
-    `(defclass* ,(intern (format nil "DBUS-~A" name) (find-package :blitz.desktop.dbus)) 
-         (,superclass)
-       ,slots
-       (:default-initargs
-           :name ',name
-           :char ',type-char
-           :alignment ,alignment))))
+  (defmacro define-dbus-type (name type-char alignment)
+    `(setf (gethash ',type-char *name-to-type*)
+           (make-dbus-type :name ',name
+                           :char ',type-char
+                           :alignment ',alignment))))
 
 (define-dbus-type boolean #\b 4)
 
@@ -38,9 +40,9 @@
 
 (define-dbus-type variant #\v 1)
 
-(define-dbus-type struct #\r 8 dbus-compound-type)
-(define-dbus-type array #\a 4 dbus-compound-type)
-(define-dbus-type dict-entry #\e 8 dbus-compound-type)
+;; (define-dbus-type struct #\r 8 dbus-compound-type)
+;; (define-dbus-type array #\a 4 dbus-compound-type)
+;; (define-dbus-type dict-entry #\e 8 dbus-compound-type)
 
 (defgeneric marshall (type object vector start)
   (:documentation "Marshalls OBJECT (interpreted as TYPE) into
@@ -64,23 +66,28 @@ new position in VECTOR."
   (setf (subseq destination start) source)
   (+ start (length source)))
 
-(defmethod marshall :around ((type dbus-type) object vector start)
-  ;; Alignment is handled in this around method. 
-  (let* ((alignment (alignment-of type))
-         (mod (nth-value 1 (truncate start alignment))))
-    (format t "~A ~A~%" alignment mod)
-    (values 
-     (call-next-method type object vector 
-                       (dbus-write-byte vector 0 start 
-                                        (mod (- alignment mod) alignment)))
-     vector)))
+;; (defmethod marshall :around ((type dbus-type) object vector start)
+;;   ;; Alignment is handled in this around method. 
+;;   (let* ((alignment (alignment-of type))
+;;          (mod (nth-value 1 (truncate start alignment))))
+;;     (format t "~A ~A~%" alignment mod)
+;;     (values 
+;;      (call-next-method type object vector 
+;;                        (dbus-write-byte vector 0 start 
+;;                                         (mod (- alignment mod) alignment)))
+;;      vector)))
 
-(defmethod marshall ((type dbus-boolean) object vector start)
-  (dbus-write-sequence vector
-                       (if object
-                           #+ little-endian #(1 0 0 0)
-                           #+ big-endian #(0 0 0 1)
-                           #(0 0 0 0))
-                       start))
+;; (defmethod marshall ((type dbus-boolean) object vector start)
+;;   (dbus-write-sequence vector
+;;                        (if object
+;;                            #+ little-endian #(1 0 0 0)
+;;                            #+ big-endian #(0 0 0 1)
+;;                            #(0 0 0 0))
+;;                        start))
+
+;;; TODO Parse signature string into list of dbus-type structures.
+;;;      How to represent arrays and structs?
+
+;;; TODO
 
 ;;; EOF
